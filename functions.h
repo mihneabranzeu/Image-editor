@@ -8,7 +8,6 @@ typedef struct
     int gray;
 }pixel_t;
 
-
 typedef struct 
 {
     int type;
