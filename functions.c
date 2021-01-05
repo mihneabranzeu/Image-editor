@@ -25,7 +25,7 @@ pixel_t **alloc_matrix(int height, int width)
 }
 
 void swap(int *a, int *b) {
-    //Swaps two int values
+    //Swaps two integer values
     int x = *a;
     *a = *b;
     *b = x;

@@ -104,15 +104,7 @@ int main()
                             } else {
                                 photo.is_selectedall = 0;
                             }
-                           /* if (y1 == photo.height)
-                                y1--;
-                            if (x1 == photo.width)
-                                x1--;
-                            if (y2 == photo.height)
-                                y2--;
-                            if (x2 == photo.width)
-                                x2--;
-                            */
+                           
                             x2--;
                             y2--;
                             photo.x1 = y1;

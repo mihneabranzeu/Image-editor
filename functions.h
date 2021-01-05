@@ -1,6 +1,7 @@
 
 typedef struct
 {
+    //The structure of a pixel
     int red;
     int green;
     int blue;
