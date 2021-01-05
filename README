@@ -1,0 +1,46 @@
+BRANZEU MIHNEA 313CA
+
+OVERVIEW:
+This is a photo editing project. It takes files in the .ppm or .pgm format
+and does various operations on them, such as applying filters, cropping or
+rotating. The program is based on a main loop, that runs until the EXIT
+command is given as input. The program is also capable of saving the edited
+files in either ascii or binary formats.
+
+DATA STRUCTURING:
+In order to work, the program needs a file to be loaded. In this proccess,
+all the characteristics of a photo are stored in a structure that saves the
+following: 
+-> the type of the file, according to the .ppm and .pgm formats
+-> the dimensions of the file(pixels)
+-> the maximum value on the color scale (optional depending on format)
+-> the photo itself, in a 2D structure which is comprised of all the
+information about a pixel, such as the red, green and blue composition
+for colored pictures, the gray value for grayscale images and black/white
+values for P1, P4 formats.
+-> information about the selected surfaces, used for performing operations
+
+INPUT FILES AND COMMANDS:
+The program takes photo files as inputs and parses them, extarcting the
+essential information and storing it in the photo structure, while reading
+and ignoring comments. The files, which may be ascii or binary are opened
+as binary and the information is read the same, the only difference being
+the photo matrix, which requires reopening the file in its own format.
+The commands given in the console are parsed the same way and after checking
+if the command is a valid one, the according function is called for performing
+the operation.
+
+FUNCTIONS:
+Most of the functions are based on only one parameter, that being the photo,
+beacause it contains all the information needed in order to apply the needed
+operation.
+The base function is LOAD, which constructs the above mentioned photo, thus
+providing the data we need for further manipulation. In accordance to it goes
+the SAVE function, which takes the data from the structure and writes it in
+a file that may later be opened and viewed as a photo.
+The other functions make use of the x1, y1, x2 and y2 fields of the structure
+and apply the operation solely on that surface, the selected surface. Modifying
+the fields can be done when the select or select all commands are given.
+CROP and ROTATE functions use a secondary matrix that helps memorizing, saving or
+changing the elements in the selected area.
+When the EXIT command is given, the loop stops and all the memory is freed.
