@@ -24,6 +24,14 @@ pixel_t **alloc_matrix(int height, int width)
     return matrix;
 }
 
+void destroy_photo(photo_t *photo)
+{
+    //Free memory for the matrix
+    for (int i = 0; i < photo->height; i++)
+        free(photo->matrix[i]);
+    free(photo->matrix);
+}
+
 void swap(int *a, int *b) {
     //Swaps two integer values
     int x = *a;
@@ -59,6 +67,12 @@ void set_photo(photo_t *photo)
 //3. ALOCA STRUCTURA DE CARE AVEM NEVOIE 
 void load(char filename[], photo_t *photo)
 {
+    //Check if another photo was loaded before
+    if (photo->type != -1) {
+        ///Free the memory
+        destroy_photo(photo);
+    }
+    
     //Open the file
     FILE *in;
     in = fopen(filename, "rb");
@@ -484,14 +498,14 @@ void apply_sepia(photo_t *photo)
 void crop(photo_t *photo)
 {
     //Getting the new dimensions
-    int new_height = photo->x2 - photo->x1 + 1;
-    int new_width = photo->y2 - photo->y1 + 1;
+    int new_height = photo->y2 - photo->y1 + 1;
+    int new_width = photo->x2 - photo->x1 + 1;
     //Extracting the data in a copy
     pixel_t **copy;
     copy = alloc_matrix(new_height, new_width);
     for (int i = 0; i < new_height; i++) {
         for (int j = 0; j < new_width; j++) {
-            copy[i][j] = photo->matrix[i + photo->x1][j + photo->y1];
+            copy[i][j] = photo->matrix[i + photo->y1][j + photo->x1];
         }
     }
 
@@ -564,9 +578,9 @@ void rotate_selection(photo_t *photo, int nrrot)
         copy = alloc_matrix(length, length);
 
         //Copy the values
-        for (int i = photo->x1; i <= photo->x2; i++)
-            for (int j = photo->y1; j <= photo->y2; j++)
-                copy[i - photo->x1][j - photo->y1] = photo->matrix[i][j];
+        for (int i = photo->y1; i <= photo->y2; i++)
+            for (int j = photo->x1; j <= photo->x2; j++)
+                copy[i - photo->y1][j - photo->x1] = photo->matrix[i][j];
 
         //Transpose the matrix
         for (int i = 0; i < length; i++)
@@ -587,9 +601,9 @@ void rotate_selection(photo_t *photo, int nrrot)
             }
 
         //Update the values in the matrix
-        for (int i = photo->x1; i <= photo->x2; i++)
-            for (int j = photo->y1; j <= photo->y2; j++)
-                photo->matrix[i][j] = copy[i - photo->x1][j - photo->y1];
+        for (int i = photo->y1; i <= photo->y2; i++)
+            for (int j = photo->x1; j <= photo->x2; j++)
+                photo->matrix[i][j] = copy[i - photo->y1][j - photo->x1];
 
         //Free the memory used by the copy
         for (int i = 0; i < length; i++)
@@ -601,11 +615,5 @@ void rotate_selection(photo_t *photo, int nrrot)
     }
 }
 
-void destroy_photo(photo_t *photo)
-{
-    //Free memory for the matrix
-    for (int i = 0; i < photo->height; i++)
-        free(photo->matrix[i]);
-    free(photo->matrix);
-}
+
 

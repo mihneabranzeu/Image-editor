@@ -99,7 +99,7 @@ int main()
                             if (y1 > y2)
                                 swap(&y1, &y2);
                             //Check if the whole image was selected
-                            if (x1 == 0 && x2 == photo.height && y1 == 0 && y2 == photo.width) {
+                            if (x1 == 0 && x2 == photo.width && y1 == 0 && y2 == photo.height) {
                                 photo.is_selectedall = 1; 
                             } else {
                                 photo.is_selectedall = 0;
@@ -107,10 +107,10 @@ int main()
                            
                             x2--;
                             y2--;
-                            photo.x1 = y1;
-                            photo.x2 = y2;
-                            photo.y1 = x1;
-                            photo.y2 = x2;
+                            photo.x1 = x1;
+                            photo.x2 = x2;
+                            photo.y1 = y1;
+                            photo.y2 = y2;
                         } else {
                             printf("Invalid coordinates\n");
                         }
