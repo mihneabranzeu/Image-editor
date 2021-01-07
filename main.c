@@ -185,7 +185,7 @@ int main()
         }
 
         //Check if the command is EXIT
-        if (strcmp(command, "EXIT\n") == 0) {
+        if (strcmp(command, "EXIT") == 0) {
             is_valid_command = 1;
             //Free memory
             destroy_photo(&photo);
