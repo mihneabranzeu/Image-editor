@@ -41,37 +41,8 @@ int main(void)
 		//Check if the command is SAVE
 		if (strstr(command, "SAVE") != NULL) {
 			is_valid_command = 1;
-			if (photo.type != -1) {
-				if (strstr(command, "ascii") != NULL) {
-					if (strlen(command) > 12) {
-						//Extracting the filename
-						int k = 0;
-						while ((command + 5)[k] != ' ') {
-							k++;
-						}
-						(command + 5)[k] = '\0';
-						save(&photo, command + 5, 1);
-					} else {
-						printf("Invalid command\n");
-					}
-				} else {
-					if (strlen(command) > 6) {
-						//Extracting the filename
-						int k = 0;
-						while ((command + 5)[k] != '\n' && (command + 5)[k] != ' ') {
-							k++;
-						}
-						(command + 5)[k] = '\0';
-						save(&photo, command + 5, 0);
-					} else {
-						printf("Invalid command\n");
-					}
-				}
-			} else {
-				printf("No image loaded\n");
-			}
+			save_logic(command, &photo);
 		}
-		
 		//Check if the command is GRAYSCALE 
 		if (strcmp(command, "GRAYSCALE\n") == 0) {
 			is_valid_command = 1;

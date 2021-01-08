@@ -172,6 +172,39 @@ void select_logic(char command[], photo_t *photo, int *invalid_selectall)
 	}
 }
 
+void save_logic(char command[], photo_t *photo)
+{
+	if (photo->type != -1) {
+		if (strstr(command, "ascii") != NULL) {
+			if (strlen(command) > 12) {
+				//Extracting the filename
+				int k = 0;
+				while ((command + 5)[k] != ' ') {
+					k++;
+				}
+				(command + 5)[k] = '\0';
+				save(photo, command + 5, 1);
+			} else {
+				printf("Invalid command\n");
+			}
+		} else {
+			if (strlen(command) > 6) {
+				//Extracting the filename
+				int k = 0;
+				while ((command + 5)[k] != '\n' && (command + 5)[k] != ' ') {
+					k++;
+				}
+				(command + 5)[k] = '\0';
+				save(photo, command + 5, 0);
+			} else {
+				printf("Invalid command\n");
+			}
+		}
+	} else {
+		printf("No image loaded\n");
+	}
+}
+
 FILE *open_file(char filename[])
 {
 	//Opens the input file

@@ -49,3 +49,4 @@ void load_logic(char command[], photo_t *photo);
 void select_all_logic(photo_t *photo);
 void select_logic(char command[], photo_t *photo, int *invalid_selectall);
 int get_selected_value(char command[], int *k, int *is_numerical_input, int *invalid_selectall);
+void save_logic(char command[], photo_t *photo);
