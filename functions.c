@@ -60,113 +60,54 @@ void set_photo(photo_t *photo)
 	photo->is_grayscale = 0;
 }
 
-
-//FUNCTIA LOAD:
-//1. DESCHIDE FISIERUL DACA SE POATE
-//2. AFLA TIPUL IMAGINII
-//3. ALOCA STRUCTURA DE CARE AVEM NEVOIE 
-void load(char filename[], photo_t *photo)
+void check_loaded(photo_t *photo)
 {
-	//Check if another photo was loaded before
 	if (photo->type != -1) {
 		///Free the memory
 		destroy_photo(photo);
 		set_photo(photo);
 	}
+}
 
-	//Open the file
+FILE *open_file(char filename[])
+{
+	//Opens the input file
 	FILE *in;
 	in = fopen(filename, "rb");
-	if (in == NULL) {
+	if (in == NULL)
 		printf("Failed to load %s\n", filename);
-		return;
-	}
-	char buff;
-	fread(&buff, sizeof(char), 1, in);
+	return in;
+}
+
+void check_comments(FILE *in, char *buff)
+{
+	//Checks for comments in input file
+	fread(buff, sizeof(char), 1, in);
 	//Check for comments
-	while (buff == '#') {
-		while(buff != '\n') {
-			fread(&buff, sizeof(char), 1, in);
+	while (*buff == '#') {
+		while(*buff != '\n') {
+			fread(buff, sizeof(char), 1, in);
 		}
-		fread(&buff, sizeof(char), 1, in);
-	} 
-	//Read the type of photo
-	fread(&buff, sizeof(char), 1, in);
-	photo->type = buff - '0';
-
-	//Get to the next line
-	fread(&buff, sizeof(char), 1, in);
-
-	fread(&buff, sizeof(char), 1, in);
-	//Check for comments
-	while (buff == '#') {
-		while (buff != '\n') {
-			fread(&buff, sizeof(char), 1, in);
-		}
-		fread(&buff, sizeof(char), 1, in); //Read new buffer char
+		fread(buff, sizeof(char), 1, in);
 	}
+}
 
-	//Dimensions
-	//Width
-	photo->width = 0;
-	while (buff != ' ') {
-		photo->width = photo->width * 10 + (buff - '0');
-		fread(&buff, sizeof(char), 1, in);
+int parse_value(FILE *in, char *buff)
+{
+	//Reads a string and parses it, returning a nummerical value
+	int value = 0;
+	while (*buff != ' ' && *buff != '\n') {
+		value = value * 10 + (*buff - '0');
+		fread(buff, sizeof(char), 1, in);
 	}
-	//Get to the first digit of height
-	fread(&buff, sizeof(char), 1, in);
-	//Height
-	photo->height = 0;
-	while (buff != '\n') {
-		photo->height = photo->height * 10 + (buff - '0');
-		fread(&buff, sizeof(char), 1, in);
-	}
+	return value;
+}
 
-	//Select all image
-	photo->x1 = 0;
-	photo->y1 = 0;
-	photo->y2 = photo->height - 1;
-	photo->x2 = photo->width - 1;
-	photo->is_selectedall = 1;
-
-	fread(&buff, sizeof(char), 1, in);
-	//Check for comments
-	while (buff == '#') {
-		while (buff != '\n') {
-			fread(&buff, sizeof(char), 1, in);
-		}
-		fread(&buff, sizeof(char), 1, in);
-	}
-	if (photo->type != 1 && photo->type != 4) {
-		//Read the maxvalue
-		photo->maxvalue = 0;
-		while (buff != '\n') {
-			photo->maxvalue = photo->maxvalue * 10 + (buff - '0');
-			fread(&buff, sizeof(char), 1, in);
-		}
-	}
-
-
-	fread(&buff, sizeof(char), 1, in);
-	//Check for comments
-	while (buff == '#') {
-		while (buff != '\n')
-			fread(&buff, sizeof(char), 1, in);
-		fread(&buff, sizeof(char), 1, in);
-	}
-
-	fseek(in, -1, SEEK_CUR);
-
-	//Memorizing the current position
-	int pos = ftell(in);
-
-	//Reading the matrix
-	//Allocating memory
+void alloc_and_read_matrix(char filename[], FILE *in, photo_t *photo, int pos)
+{
+	//Builds the photo matrix
 	photo->matrix = alloc_matrix(photo->height, photo->width);
-
 	if (photo->type > 3) { //Working on reading the binary formats
-		//Go back to the beginning of the matrix
-		//fseek(in, -2, SEEK_CUR);
 		switch (photo->type)
 		{
 			case 4:
@@ -175,13 +116,8 @@ void load(char filename[], photo_t *photo)
 				for (int i = 0; i < photo->height; i++)
 					for (int j = 0; j < photo->width; j++)
 						fread(&photo->matrix[i][j].black, sizeof(unsigned char), 1, in);
-				/*for(int i = 0; i < photo->height; i++) {
-					for (int j = 0; j < photo->width; j++)
-						printf("%d ", photo->matrix[i][j].black);
-					printf("\n");
-				}*/
+
 				break;
-			
 			case 5:
 				//Reading the Grayscale image(type 5)
 				//Reading the matrix
@@ -190,10 +126,7 @@ void load(char filename[], photo_t *photo)
 						fread(&photo->matrix[i][j].gray, sizeof(unsigned char), 1, in);
 					}
 				}
-				//Confirming the successful load
-				printf("Loaded %s\n", filename);
 				break;
-
 			case 6:
 				//Reading the RGB image(type 6)
 				//Reading the matrix
@@ -203,10 +136,7 @@ void load(char filename[], photo_t *photo)
 						fread(&photo->matrix[i][j].green, sizeof(unsigned char), 1, in);
 						fread(&photo->matrix[i][j].blue, sizeof(unsigned char), 1, in);
 					}
-				//Confirming the successful load
-				printf("Loaded %s\n", filename);
 				break;
-
 			default:
 				break;
 		}
@@ -216,7 +146,6 @@ void load(char filename[], photo_t *photo)
 		in = fopen(filename, "r");
 		//Going to the start of the matrix
 		fseek(in, pos, SEEK_SET);
-
 		switch (photo->type)
 		{
 		case 1:
@@ -224,19 +153,13 @@ void load(char filename[], photo_t *photo)
 			for (int i = 0; i < photo->height; i++)
 				for (int j = 0; j < photo->width; j++)
 					fscanf(in, "%d", &photo->matrix[i][j].black);
-			//Confirming the successful load
-			printf("Loaded %s\n", filename);
 			break;
-		
 		case 2:
 			//Reading the Grayscale format
 			for (int i = 0; i < photo->height; i++)
 				for (int j = 0; j < photo->width; j++)
 					fscanf(in, "%d", &photo->matrix[i][j].gray);
-			//Confirming the successful load
-			printf("Loaded %s\n", filename);
 			break;
-
 		case 3:
 			//Reading the RGB format
 			for (int i = 0; i < photo->height; i++)
@@ -245,14 +168,53 @@ void load(char filename[], photo_t *photo)
 					fscanf(in, "%d", &photo->matrix[i][j].green);
 					fscanf(in, "%d", &photo->matrix[i][j].blue);
 				}
-			//Confirming the successful load
-			printf("Loaded %s\n", filename);
 			break;
-
 		default:
 			break;
 		}
 	}
+	//Confirming the successful load
+	printf("Loaded %s\n", filename);
+}
+
+void load(char filename[], photo_t *photo)
+{
+	//Loads the input file into memory
+	//Check if another photo was loaded before
+	check_loaded(photo);
+	FILE *in;
+	in = open_file(filename);
+	if (in == NULL)
+		return;
+	//Start the reading logic
+	char buff;
+	check_comments(in, &buff);
+	//Read the type of photo
+	fread(&buff, sizeof(char), 1, in);
+	photo->type = buff - '0';
+	//Get to the next line
+	fread(&buff, sizeof(char), 1, in);
+	check_comments(in, &buff);
+	//Dimensions
+	//Width
+	photo->width = parse_value(in, &buff);
+	//Get to the first digit of height
+	fread(&buff, sizeof(char), 1, in);
+	//Height
+	photo->height = parse_value(in, &buff);
+	//Select all image
+	select_all(photo);
+	check_comments(in, &buff);
+	if (photo->type != 1 && photo->type != 4) {
+		//Read the maxvalue
+		photo->maxvalue = parse_value(in, &buff);
+	}
+	check_comments(in, &buff);
+	fseek(in, -1, SEEK_CUR);
+	//Memorizing the current position
+	int pos = ftell(in);
+	//Allocating memory and reading the matrix
+	alloc_and_read_matrix(filename, in, photo, pos);
 	//Close the input file
 	fclose(in);
 }

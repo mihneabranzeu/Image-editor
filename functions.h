@@ -43,3 +43,7 @@ void rotate_all(photo_t *photo, int nrrot);
 void rotate_selection(photo_t *photo, int nrrot);
 void crop(photo_t *photo);
 int myround(double x);
+void check_loaded(photo_t *photo);
+void check_comments(FILE *in, char *buff);
+int parse_value(FILE *in, char *buff);
+void alloc_and_read_matrix(char filename[], FILE *in, photo_t *photo, int pos);
