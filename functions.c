@@ -229,95 +229,22 @@ void select_all(photo_t *photo)
 	photo->is_selectedall = 1;
 }
 
-void save(photo_t *photo, char filename[], int is_ascii)
+void print_dimension(FILE *out, int value)
 {
-	//Opening the file in binary format
-	FILE *out;
-	out  = fopen(filename, "wb");
-	char buff; //Declaring the buffer that will do the writing
-	//Printing the file type
-	buff = 'P';
-	fwrite(&buff, sizeof(char), 1, out);
-	//Getting the new type of file
-	int new_type;
-	switch (photo->type)
-	{
-	case 1:
-		if (is_ascii == 1)
-			new_type = 1;
-		else new_type = 4;
-		break;
-
-	case 2:
-		if (is_ascii == 1)
-			new_type = 2;
-		else new_type = 5;
-		break;
-
-	case 3:
-		if (is_ascii == 1)
-			new_type = 3;
-		else new_type = 6;
-		break;
-		
-	case 4:
-		if (is_ascii == 1)
-			new_type = 1;
-		else new_type = 4;
-		break;
-
-	case 5:
-		if (is_ascii == 1)
-			new_type = 2;
-		else new_type = 5;
-		break;
-
-	case 6:
-		if (is_ascii == 1)
-			new_type = 3;
-		else new_type = 6;
-		break;
-
-	default:
-		break;
-	}
-	buff = (char)(new_type + '0');
-	fwrite(&buff, sizeof(char), 1, out);
-	buff = '\n';
-	fwrite(&buff, sizeof(char), 1, out);
-
-	//Printing the dimensions
-	int p10 = powof10(photo->width);
+	//Transforms a value into chars and writes them onto a file
+	int p10 = powof10(value);
+	char buff;
 	while (p10 > 0) {
-		buff = (photo->width / p10) % 10 + '0';
+		buff = (value / p10) % 10 + '0';
 		fwrite(&buff, sizeof(char), 1, out);
 		p10 /= 10;
 	}
-	buff = ' ';
-	fwrite(&buff, sizeof(char), 1, out);
+}
 
-	p10 = powof10(photo->height);
-	while (p10 > 0) {
-		buff = (photo->height / p10) % 10 + '0';
-		fwrite(&buff, sizeof(char), 1, out);
-		p10 /= 10;
-	}
-	buff = '\n';
-	fwrite(&buff, sizeof(char), 1, out);
-
-	//Printing the maxvalue (if neccessary)
-	if (new_type != 1 && new_type != 4) {
-		p10 = powof10(photo->maxvalue);
-		while (p10 > 0) {
-			buff = (photo->maxvalue / p10) % 10 + '0';
-			fwrite(&buff, sizeof(char), 1, out);
-			p10 /= 10;
-		}
-		buff = '\n';
-		fwrite(&buff, sizeof(char), 1, out);
-	}
-
-	//Printing the matrix
+void print_matrix(FILE *out, char filename[], int new_type, photo_t *photo)
+{
+	//Prints the photo matrix onto  a file
+	char buff;
 	if (new_type > 3) { //Working on the binary formats
 		switch (new_type)
 		{
@@ -395,6 +322,55 @@ void save(photo_t *photo, char filename[], int is_ascii)
 			break;
 		}
 	}
+}
+
+void save(photo_t *photo, char filename[], int is_ascii)
+{
+	//Opening the file in binary format
+	FILE *out;
+	out  = fopen(filename, "wb");
+	char buff; //Declaring the buffer that will do the writing
+	//Printing the file type
+	buff = 'P';
+	fwrite(&buff, sizeof(char), 1, out);
+	//Getting the new type of file
+	int new_type;
+	switch (is_ascii)
+	{
+	case 1:
+		if (photo->type > 3)
+			new_type = photo->type - 3;
+		else
+			new_type = photo->type;
+		break;
+	case 0:
+		if (photo->type <= 3)
+			new_type = photo->type + 3;
+		else
+			new_type = photo->type;
+		break;
+	default:
+		break;
+	}
+	buff = (char)(new_type + '0');
+	fwrite(&buff, sizeof(char), 1, out);
+	buff = '\n';
+	fwrite(&buff, sizeof(char), 1, out);
+	//Printing the dimensions
+	print_dimension(out, photo->width);
+	buff = ' ';
+	fwrite(&buff, sizeof(char), 1, out);
+	print_dimension(out, photo->height);
+	buff = '\n';
+	fwrite(&buff, sizeof(char), 1, out);
+	//Printing the maxvalue (if neccessary)
+	if (new_type != 1 && new_type != 4) {
+		print_dimension(out, photo->maxvalue);
+		buff = '\n';
+		fwrite(&buff, sizeof(char), 1, out);
+	}
+	//Printing the matrix
+	print_matrix(out, filename, new_type, photo);
 	printf("Saved %s\n", filename);
 	fclose(out);
 }

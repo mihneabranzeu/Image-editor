@@ -47,3 +47,5 @@ void check_loaded(photo_t *photo);
 void check_comments(FILE *in, char *buff);
 int parse_value(FILE *in, char *buff);
 void alloc_and_read_matrix(char filename[], FILE *in, photo_t *photo, int pos);
+void print_dimension(FILE *out, int value);
+void print_matrix(FILE *out, char filename[], int new_type, photo_t *photo);
