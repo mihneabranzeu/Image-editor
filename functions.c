@@ -9,13 +9,13 @@
 pixel_t **alloc_matrix(int height, int width)
 {
     //Alocating memory for the matrix
-    pixel_t **matrix = (pixel_t **)malloc(height * sizeof(pixel_t *));
+    pixel_t **matrix = (pixel_t **)calloc(height, sizeof(pixel_t *));
     if (matrix == NULL) {
         printf("Couldn't store photo\n");
         return 0;
     }
     for (int i = 0; i < height; i++) {
-        matrix[i] = (pixel_t *)malloc(width * sizeof(pixel_t));
+        matrix[i] = (pixel_t *)calloc(width, sizeof(pixel_t));
         if (matrix[i] == NULL) {
             printf("Couldn't store photo\n");
             return 0;
@@ -71,6 +71,7 @@ void load(char filename[], photo_t *photo)
     if (photo->type != -1) {
         ///Free the memory
         destroy_photo(photo);
+        set_photo(photo);
     }
     
     //Open the file
@@ -154,7 +155,7 @@ void load(char filename[], photo_t *photo)
         fread(&buff, sizeof(char), 1, in);
     }
 
-    fseek(in, -2, SEEK_CUR);
+    fseek(in, -1, SEEK_CUR);
     
     //Memorizing the current position
     int pos = ftell(in);
@@ -351,7 +352,7 @@ void save(photo_t *photo, char filename[], int is_ascii)
             p10 /= 10;
         }
         buff = '\n';
-        fwrite(&buff, sizeof(unsigned char), 1, out);
+        fwrite(&buff, sizeof(char), 1, out);
     }
 
     //Printing the matrix
@@ -398,6 +399,7 @@ void save(photo_t *photo, char filename[], int is_ascii)
     } else {
         fclose(out);
         out = fopen(filename, "a");
+        fseek(out, +1, SEEK_CUR);
         switch (new_type)
         {
         case 1:

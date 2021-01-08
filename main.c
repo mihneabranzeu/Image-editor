@@ -25,22 +25,26 @@ int main()
                 is_valid_command = 1;
                 //Adjusting the command string 
                 command[strlen(command) - 1] = '\0';
+                //Check if another photo was loaded before
+                if (photo.type != -1) {
+                    //Free memory
+                    destroy_photo(&photo);
+                    set_photo(&photo);
+                }
                 //Launching the command
                 load(command + 5, &photo);
             } else printf("Invalid command\n");
         }
         //Check if the command is SELECT ALL
         if (strstr(command, "SELECT ALL") != NULL) {
-            if (strlen(command) == 11) {
-                is_valid_command = 1;
-                //Check if a photo has been loaded
-                if (photo.type != -1) {
-                    select_all(&photo);
-                    printf("Selected ALL\n");
-                } else {
-                printf("No image loaded.\n");
-                }
-            } else printf("Invalid command\n");
+            is_valid_command = 1;
+            //Check if a photo has been loaded
+            if (photo.type != -1) {
+                select_all(&photo);
+                printf("Selected ALL\n");
+            } else {
+            printf("No image loaded\n");
+            }
         } else { // Check if the command is SELECT
             if (strstr(command, "SELECT") != NULL) {
                 is_valid_command = 1;
@@ -48,12 +52,16 @@ int main()
                 if (photo.type != -1) {
                     //Parse the parametres of the command
                     int x1 = 0, y1= 0, x2 = 0, y2 = 0;
+                    int is_numerical_input = 1;
                     int k = strlen("SELECT ");
                     if (strlen(command) < 9) {
                         invalid_selectall = 1;
                     } else {
                         //Get x1
                         while(k < (int)strlen(command) - 1 && command[k] != ' ') {
+                            if ((command[k] - '0' < 0 || command[k] - '0' > 9) && (command[k] != '-')) {
+                                is_numerical_input = 0;
+                            }
                             x1 = x1 * 10 + (command[k] - '0');
                             k++;
                             if (k == (int)strlen(command) - 1) {
@@ -64,6 +72,9 @@ int main()
                         //Get y1
                         k++;
                         while(k < (int)strlen(command) - 1 && command[k] != ' ') {
+                            if ((command[k] - '0' < 0 || command[k] - '0' > 9) && (command[k] != '-')) {
+                                is_numerical_input = 0;
+                            }
                             y1 = y1 * 10 + (command[k] - '0');
                             k++;
                             if (k == (int)strlen(command) - 1) {
@@ -74,6 +85,9 @@ int main()
                         k++;
                         //Get x2
                         while(k < (int)strlen(command) - 1 && command[k] != ' ') {
+                            if ((command[k] - '0' < 0 || command[k] - '0' > 9) && (command[k] != '-')) {
+                                is_numerical_input = 0;
+                            }
                             x2 = x2 * 10 + (command[k] - '0');
                             k++;
                             if (k == (int)strlen(command) - 1) {
@@ -84,20 +98,23 @@ int main()
                         k++;
                         //Get y2
                         while(k < (int)strlen(command) &&  command[k] != '\n') {
+                            if ((command[k] - '0' < 0 || command[k] - '0' > 9) && (command[k] != '-')) {
+                                is_numerical_input = 0;
+                            }
                             y2 = y2 * 10 + (command[k] - '0');
                             k++;
                         }
                     }
-                    if (invalid_selectall == 1 || k < (int)strlen(command) - 1 || strlen(command) < 9) {
+                    if (invalid_selectall == 1 || k < (int)strlen(command) - 1 || strlen(command) < 9 || is_numerical_input == 0) {
                             printf("Invalid command\n");
                     } else {
-                        if (0 <= y1 && y1 <= photo.height && 0 <= y2 && y2 <= photo.height && 0 <= x1 && x1 <= photo.width && 0 <= x2 && x2 <= photo.width) {
-                            printf("Selected %d %d %d %d\n", x1, y1, x2, y2);
+                        if (0 <= y1 && y1 <= photo.height && 0 <= y2 && y2 <= photo.height && 0 <= x1 && x1 <= photo.width && 0 <= x2 && x2 <= photo.width && x1 != x2 && y1 != y2 && is_numerical_input == 1) {
                             //Valid input
                             if (x1 > x2)
                                 swap(&x1, &x2);
                             if (y1 > y2)
                                 swap(&y1, &y2);
+                            printf("Selected %d %d %d %d\n", x1, y1, x2, y2);
                             //Check if the whole image was selected
                             if (x1 == 0 && x2 == photo.width && y1 == 0 && y2 == photo.height) {
                                 photo.is_selectedall = 1; 
@@ -112,7 +129,7 @@ int main()
                             photo.y1 = y1;
                             photo.y2 = y2;
                         } else {
-                            printf("Invalid coordinates\n");
+                            printf("Invalid set of coordinates\n");
                         }
                     }
                 } else printf("No image loaded\n");
@@ -137,7 +154,11 @@ int main()
                 } else {
                     if (strlen(command) > 6) {
                         //Extracting the filename
-                        (command + 5)[strlen((command + 5)) - 1] = '\0';
+                        int k = 0;
+                        while ((command + 5)[k] != '\n' && (command + 5)[k] != ' ') {
+                            k++;
+                        }
+                        (command + 5)[k] = '\0';
                         save(&photo, command + 5, 0);
                     } else {
                         printf("Invalid command\n");
@@ -167,7 +188,7 @@ int main()
         if (strcmp(command, "SEPIA\n") == 0) {
             is_valid_command = 1;
             if (photo.type != -1) {
-                if ((photo.type == 3 || photo.type == 6) && photo.is_grayscale == 0) {
+                if (photo.type == 3 || photo.type == 6) {
                     //Apply the sepia filter
                     apply_sepia(&photo);
                 } else {
@@ -181,14 +202,22 @@ int main()
         //Check if the command is CROP
         if (strcmp(command, "CROP\n") == 0) {
             is_valid_command = 1;
-            crop(&photo);
+            if (photo.type != -1) {
+                crop(&photo);
+            } else {
+                printf("No image loaded\n");
+            }
         }
 
         //Check if the command is EXIT
-        if (strcmp(command, "EXIT") == 0) {
+        if (strstr(command, "EXIT") != NULL) {
             is_valid_command = 1;
-            //Free memory
-            destroy_photo(&photo);
+            if (photo.type != -1) {
+                //Free memory
+                destroy_photo(&photo);
+            } else {
+                printf("No image loaded\n");
+            }
             //Stop the loop
             is_running = 0;
         }
@@ -216,7 +245,7 @@ int main()
                         start++;
                     }
                     //Verify if the input is correct
-                    if (angle == 90 || angle == 180 || angle == 270) {
+                    if (angle == 0 || angle == 90 || angle == 180 || angle == 270 || angle == 360) {
                         //Check which type of rotation should be done
                         int nrrot;
                         //Getting the number of 90 degrees rotations that are required
