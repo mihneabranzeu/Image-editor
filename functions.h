@@ -25,10 +25,6 @@ typedef struct
 	pixel_t **matrix;
 } photo_t;
 
-
-
-
-
 void load(char filename[], photo_t *photo);
 pixel_t** alloc_matrix(int height, int width);
 void set_photo(photo_t *photo);
@@ -49,3 +45,7 @@ int parse_value(FILE *in, char *buff);
 void alloc_and_read_matrix(char filename[], FILE *in, photo_t *photo, int pos);
 void print_dimension(FILE *out, int value);
 void print_matrix(FILE *out, char filename[], int new_type, photo_t *photo);
+void load_logic(char command[], photo_t *photo);
+void select_all_logic(photo_t *photo);
+void select_logic(char command[], photo_t *photo, int *invalid_selectall);
+int get_selected_value(char command[], int *k, int *is_numerical_input, int *invalid_selectall);

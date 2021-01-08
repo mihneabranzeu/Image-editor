@@ -12,7 +12,7 @@ int main(void)
 	photo_t photo;
 	//Set the photo values
 	set_photo(&photo);
-	char command[MAX_LENGTH_COMMAND]; 
+	char command[MAX_LENGTH_COMMAND];
 	while(is_running == 1) {
 		fgets(command, MAX_LENGTH_COMMAND, stdin);
 		int is_valid_command = 0;
@@ -21,115 +21,20 @@ int main(void)
 		if (strstr(command, "LOAD") != NULL) {
 			if (strlen(command) > strlen("LOAD \n")) {
 				is_valid_command = 1;
-				//Adjusting the command string 
-				command[strlen(command) - 1] = '\0';
-				//Check if another photo was loaded before
-				if (photo.type != -1) {
-					//Free memory
-					destroy_photo(&photo);
-					set_photo(&photo);
-				}
-				//Launching the command
-				load(command + 5, &photo);
+				load_logic(command, &photo);
 			} else printf("Invalid command\n");
 		}
 		//Check if the command is SELECT ALL
 		if (strstr(command, "SELECT ALL") != NULL) {
 			is_valid_command = 1;
-			//Check if a photo has been loaded
-			if (photo.type != -1) {
-				select_all(&photo);
-				printf("Selected ALL\n");
-			} else {
-			printf("No image loaded\n");
-			}
+			select_all_logic(&photo);
+			
 		} else { // Check if the command is SELECT
 			if (strstr(command, "SELECT") != NULL) {
 				is_valid_command = 1;
 				//Check if a photo has been loaded
 				if (photo.type != -1) {
-					//Parse the parametres of the command
-					int x1 = 0, y1= 0, x2 = 0, y2 = 0;
-					int is_numerical_input = 1;
-					int k = strlen("SELECT ");
-					if (strlen(command) < 9) {
-						invalid_selectall = 1;
-					} else {
-						//Get x1
-						while(k < (int)strlen(command) - 1 && command[k] != ' ') {
-							if ((command[k] - '0' < 0 || command[k] - '0' > 9) && (command[k] != '-')) {
-								is_numerical_input = 0;
-							}
-							x1 = x1 * 10 + (command[k] - '0');
-							k++;
-							if (k == (int)strlen(command) - 1) {
-								invalid_selectall = 1;
-								break;
-							}
-						}
-						//Get y1
-						k++;
-						while(k < (int)strlen(command) - 1 && command[k] != ' ') {
-							if ((command[k] - '0' < 0 || command[k] - '0' > 9) && (command[k] != '-')) {
-								is_numerical_input = 0;
-							}
-							y1 = y1 * 10 + (command[k] - '0');
-							k++;
-							if (k == (int)strlen(command) - 1) {
-								invalid_selectall = 1;
-								break;
-							}
-						}
-						k++;
-						//Get x2
-						while(k < (int)strlen(command) - 1 && command[k] != ' ') {
-							if ((command[k] - '0' < 0 || command[k] - '0' > 9) && (command[k] != '-')) {
-								is_numerical_input = 0;
-							}
-							x2 = x2 * 10 + (command[k] - '0');
-							k++;
-							if (k == (int)strlen(command) - 1) {
-								invalid_selectall = 1;
-								break;
-							}
-						}
-						k++;
-						//Get y2
-						while(k < (int)strlen(command) &&  command[k] != '\n') {
-							if ((command[k] - '0' < 0 || command[k] - '0' > 9) && (command[k] != '-')) {
-								is_numerical_input = 0;
-							}
-							y2 = y2 * 10 + (command[k] - '0');
-							k++;
-						}
-					}
-					if (invalid_selectall == 1 || k < (int)strlen(command) - 1 || strlen(command) < 9 || is_numerical_input == 0) {
-							printf("Invalid command\n");
-					} else {
-						if (0 <= y1 && y1 <= photo.height && 0 <= y2 && y2 <= photo.height && 0 <= x1 && x1 <= photo.width && 0 <= x2 && x2 <= photo.width && x1 != x2 && y1 != y2 && is_numerical_input == 1) {
-							//Valid input
-							if (x1 > x2)
-								swap(&x1, &x2);
-							if (y1 > y2)
-								swap(&y1, &y2);
-							printf("Selected %d %d %d %d\n", x1, y1, x2, y2);
-							//Check if the whole image was selected
-							if (x1 == 0 && x2 == photo.width && y1 == 0 && y2 == photo.height) {
-								photo.is_selectedall = 1; 
-							} else {
-								photo.is_selectedall = 0;
-							}
-							
-							x2--;
-							y2--;
-							photo.x1 = x1;
-							photo.x2 = x2;
-							photo.y1 = y1;
-							photo.y2 = y2;
-						} else {
-							printf("Invalid set of coordinates\n");
-						}
-					}
+					select_logic(command, &photo, &invalid_selectall);
 				} else printf("No image loaded\n");
 			}
 		}
