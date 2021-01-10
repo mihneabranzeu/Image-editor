@@ -8,7 +8,7 @@
 
 pixel_t **alloc_matrix(int height, int width)
 {
-	//Alocating memory for the matrix
+	//Alocates memory for the matrix
 	pixel_t **matrix = (pixel_t **)calloc(height, sizeof(pixel_t *));
 	if (!matrix) {
 		printf("Couldn't store photo\n");
@@ -26,7 +26,7 @@ pixel_t **alloc_matrix(int height, int width)
 
 void destroy_photo(photo_t *photo)
 {
-	//Free memory for the matrix
+	//Frees memory for the matrix
 	for (int i = 0; i < photo->height; i++)
 		free(photo->matrix[i]);
 	free(photo->matrix);
@@ -64,6 +64,7 @@ void set_photo(photo_t *photo)
 
 void check_loaded(photo_t *photo)
 {
+	//Checks if a photo was previously loaded
 	if (photo->type != -1) {
 		///Free the memory
 		destroy_photo(photo);
@@ -73,8 +74,8 @@ void check_loaded(photo_t *photo)
 
 void load_logic(char command[], photo_t *photo)
 {
-	//Does the logic for the load command 
-	//Adjusting the command string 
+	//Does the logic for the load command
+	//Adjusting the command string
 	command[strlen(command) - 1] = '\0';
 	//Check if another photo was loaded before
 	if (photo->type != -1) {
@@ -94,18 +95,19 @@ void select_all_logic(photo_t *photo)
 		select_all(photo);
 		printf("Selected ALL\n");
 	} else {
-	printf("No image loaded\n");
-	}	
+		printf("No image loaded\n");
+	}
 }
 
-int get_selected_value(char command[], int *k, int *is_numerical_input, int *invalid_selectall)
+int get_selected_value(char command[], int *k, int *is_numerical_input,
+					   int *invalid_selectall)
 {
 	//Gets the value of a selected coordinate
 	int value = 0;
-	while(*k < (int)strlen(command) - 1 && command[*k] != ' ') {
-		if ((command[*k] - '0' < 0 || command[*k] - '0' > 9) && (command[*k] != '-')) {
-			*is_numerical_input = 0;
-		}
+	while (*k < (int)strlen(command) - 1 && command[*k] != ' ') {
+		if (command[*k] - '0' < 0 || command[*k] - '0' > 9)
+			if (command[*k] != '-')
+				*is_numerical_input = 0;
 		value = value * 10 + (command[*k] - '0');
 		(*k)++;
 		if (*k == (int)strlen(command) - 1) {
@@ -120,34 +122,41 @@ void select_logic(char command[], photo_t *photo, int *invalid_selectall)
 {
 	//Does the logic for the select command
 	//Parse the parametres of the command
-	int x1 = 0, y1= 0, x2 = 0, y2 = 0;
+	int x1 = 0, y1 = 0, x2 = 0, y2 = 0;
 	int is_numerical_input = 1;
 	int k = strlen("SELECT ");
 	if (strlen(command) < 9) {
 		*invalid_selectall = 1;
 	} else {
 		//Get x1
-		x1 = get_selected_value(command, &k, &is_numerical_input, invalid_selectall);
+		x1 = get_selected_value(command, &k, &is_numerical_input,
+								invalid_selectall);
 		//Get y1
 		k++;
-		y1 = get_selected_value(command, &k, &is_numerical_input, invalid_selectall);
+		y1 = get_selected_value(command, &k, &is_numerical_input,
+								invalid_selectall);
 		k++;
 		//Get x2
-		x2 = get_selected_value(command, &k, &is_numerical_input, invalid_selectall); 
+		x2 = get_selected_value(command, &k, &is_numerical_input,
+								invalid_selectall);
 		k++;
 		//Get y2
-		while(k < (int)strlen(command) &&  command[k] != '\n') {
-			if ((command[k] - '0' < 0 || command[k] - '0' > 9) && (command[k] != '-')) {
+		while (k < (int)strlen(command) &&  command[k] != '\n') {
+			if ((command[k] - '0' < 0 || command[k] - '0' > 9) &&
+				(command[k] != '-')) {
 				is_numerical_input = 0;
 			}
 			y2 = y2 * 10 + (command[k] - '0');
 			k++;
 		}
 	}
-	if (*invalid_selectall == 1 || k < (int)strlen(command) - 1 || strlen(command) < 9 || is_numerical_input == 0) {
-			printf("Invalid command\n");
+	if (*invalid_selectall == 1 || k < (int)strlen(command) - 1 ||
+		strlen(command) < 9 || is_numerical_input == 0) {
+		printf("Invalid command\n");
 	} else {
-		if (0 <= y1 && y1 <= photo->height && 0 <= y2 && y2 <= photo->height && 0 <= x1 && x1 <= photo->width && 0 <= x2 && x2 <= photo->width && x1 != x2 && y1 != y2 && is_numerical_input == 1) {
+		if (0 <= y1 && y1 <= photo->height && 0 <= y2 && y2 <= photo->height &&
+			0 <= x1 && x1 <= photo->width && 0 <= x2 && x2 <= photo->width &&
+			x1 != x2 && y1 != y2 && is_numerical_input == 1) {
 			//Valid input
 			if (x1 > x2)
 				swap(&x1, &x2);
@@ -155,13 +164,14 @@ void select_logic(char command[], photo_t *photo, int *invalid_selectall)
 				swap(&y1, &y2);
 			printf("Selected %d %d %d %d\n", x1, y1, x2, y2);
 			//Check if the whole image was selected
-			if (x1 == 0 && x2 == photo->width && y1 == 0 && y2 == photo->height) {
-				photo->is_selectedall = 1; 
-			} else {
+			if (x1 == 0 && x2 == photo->width && y1 == 0 &&
+				y2 == photo->height)
+				photo->is_selectedall = 1;
+			else
 				photo->is_selectedall = 0;
-			}
 			x2--;
 			y2--;
+			//Initialize the values
 			photo->x1 = x1;
 			photo->x2 = x2;
 			photo->y1 = y1;
@@ -174,14 +184,15 @@ void select_logic(char command[], photo_t *photo, int *invalid_selectall)
 
 void save_logic(char command[], photo_t *photo)
 {
+	//Does the logic for the save command
 	if (photo->type != -1) {
-		if (strstr(command, "ascii") != NULL) {
+		if (strstr(command, "ascii")) {
 			if (strlen(command) > 12) {
 				//Extracting the filename
 				int k = 0;
-				while ((command + 5)[k] != ' ') {
+				while ((command + 5)[k] != ' ')
 					k++;
-				}
+
 				(command + 5)[k] = '\0';
 				save(photo, command + 5, 1);
 			} else {
@@ -191,14 +202,120 @@ void save_logic(char command[], photo_t *photo)
 			if (strlen(command) > 6) {
 				//Extracting the filename
 				int k = 0;
-				while ((command + 5)[k] != '\n' && (command + 5)[k] != ' ') {
+				while ((command + 5)[k] != '\n' && (command + 5)[k] != ' ')
 					k++;
-				}
+
 				(command + 5)[k] = '\0';
 				save(photo, command + 5, 0);
 			} else {
 				printf("Invalid command\n");
 			}
+		}
+	} else {
+		printf("No image loaded\n");
+	}
+}
+
+void grayscale_logic(photo_t *photo)
+{
+	//Does the logic for the grayscale command
+	if (photo->type != -1) {
+		if (photo->type == 3 || photo->type == 6) {
+			//Apply the grayscale filter
+			apply_grayscale(photo);
+		} else {
+			printf("Grayscale filter not available\n");
+		}
+	} else {
+		printf("No image loaded\n");
+	}
+}
+
+void sepia_logic(photo_t *photo)
+{
+	//Does the logic for the sepia command
+	if (photo->type != -1) {
+		if (photo->type == 3 || photo->type == 6) {
+			//Apply the sepia filter
+			apply_sepia(photo);
+		} else {
+			printf("Sepia filter not available\n");
+		}
+	} else {
+		printf("No image loaded\n");
+	}
+}
+
+void crop_logic(photo_t *photo)
+{
+	//Does the logic for the crop command
+	if (photo->type != -1)
+		crop(photo);
+	else
+		printf("No image loaded\n");
+}
+
+void exit_logic(photo_t *photo)
+{
+	//Does the logic for the exit command
+	if (photo->type != -1) {
+		//Free memory
+		destroy_photo(photo);
+	} else {
+		printf("No image loaded\n");
+	}
+}
+
+void rotate_logic(char command[], photo_t *photo)
+{
+	//Does the logic for the rotate command
+	if (photo->type != -1) {
+		if (strlen(command) > strlen("ROTATE") + 2) {
+			//Extract the angle value
+			int angle = 0;
+			int start = 7;
+			//Get the sgn value
+			int sgn = 1;
+			if (command[7] == '-') {
+				sgn = -1;
+				start = 8;
+			}
+			if (command[7] == '+')
+				start = 8;
+
+			//Compute the angle
+			while (command[start] != '\n') {
+				angle = angle * 10 + (command[start] - '0');
+				start++;
+			}
+			//Verify if the input is correct
+			if (angle == 0 || angle == 90 || angle == 180 ||
+				angle == 270 || angle == 360) {
+				//Check which type of rotation should be done
+				int nrrot;
+				//Getting the number of 90 degrees rotations that are required
+				if (sgn == 1)
+					nrrot = angle / 90;
+				else
+					nrrot = (360 - angle) / 90;
+
+				if (photo->is_selectedall == 1) {
+					rotate_all(photo, nrrot);
+					printf("Rotated %d\n", angle * sgn);
+				} else {
+					//Check if the selected area is square shaped
+					if ((photo->x2 - photo->x1) == (photo->y2 - photo->y1)) {
+						rotate_selection(photo, nrrot);
+						printf("Rotated %d\n", angle * sgn);
+					} else {
+						printf("The selection must be square\n");
+					}
+				}
+			} else {
+				printf("Unsupported rotation angle\n");
+			}
+		} else {
+			printf("Invalid command\n");
 		}
 	} else {
 		printf("No image loaded\n");
@@ -244,40 +361,40 @@ void alloc_and_read_matrix(char filename[], FILE *in, photo_t *photo, int pos)
 	photo->matrix = alloc_matrix(photo->height, photo->width);
 	if (photo->type > 3) { //Working on reading the binary formats
 		switch (photo->type) {
-			case 4:
-				//Reading the type 4 file
-				//Reading the matrix
-				for (int i = 0; i < photo->height; i++)
-					for (int j = 0; j < photo->width; j++)
-						fread(&photo->matrix[i][j].black,
-							  sizeof(unsigned char), 1, in);
+		case 4:
+			//Reading the type 4 file
+			//Reading the matrix
+			for (int i = 0; i < photo->height; i++)
+				for (int j = 0; j < photo->width; j++)
+					fread(&photo->matrix[i][j].black,
+						  sizeof(unsigned char), 1, in);
 
-				break;
-			case 5:
-				//Reading the Grayscale image(type 5)
-				//Reading the matrix
-				for (int i = 0; i < photo->height; i++) {
-					for (int j = 0; j < photo->width; j++) {
-						fread(&photo->matrix[i][j].gray,
-							  sizeof(unsigned char), 1, in);
-					}
+			break;
+		case 5:
+			//Reading the Grayscale image(type 5)
+			//Reading the matrix
+			for (int i = 0; i < photo->height; i++) {
+				for (int j = 0; j < photo->width; j++) {
+					fread(&photo->matrix[i][j].gray,
+						  sizeof(unsigned char), 1, in);
 				}
-				break;
-			case 6:
-				//Reading the RGB image(type 6)
-				//Reading the matrix
-				for (int i = 0; i < photo->height; i++)
-					for (int j = 0; j < photo->width; j++) {
-						fread(&photo->matrix[i][j].red,
-							  sizeof(unsigned char), 1, in);
-						fread(&photo->matrix[i][j].green,
-							  sizeof(unsigned char), 1, in);
-						fread(&photo->matrix[i][j].blue,
-							  sizeof(unsigned char), 1, in);
-					}
-				break;
-			default:
-				break;
+			}
+			break;
+		case 6:
+			//Reading the RGB image(type 6)
+			//Reading the matrix
+			for (int i = 0; i < photo->height; i++)
+				for (int j = 0; j < photo->width; j++) {
+					fread(&photo->matrix[i][j].red,
+						  sizeof(unsigned char), 1, in);
+					fread(&photo->matrix[i][j].green,
+						  sizeof(unsigned char), 1, in);
+					fread(&photo->matrix[i][j].blue,
+						  sizeof(unsigned char), 1, in);
+				}
+			break;
+		default:
+			break;
 		}
 	} else { //Working on the ascii formats
 		//Opening the file in a prefered format
@@ -425,8 +542,7 @@ void print_matrix(FILE *out, char filename[], int new_type, photo_t *photo)
 		fclose(out);
 		out = fopen(filename, "a");
 		fseek(out, + 1, SEEK_CUR);
-		switch (new_type)
-		{
+		switch (new_type) {
 		case 1:
 			//Printing the black and white format
 			for (int i = 0; i < photo->height; i++) {
@@ -444,16 +560,18 @@ void print_matrix(FILE *out, char filename[], int new_type, photo_t *photo)
 				fprintf(out, "\n");
 			}
 			break;
-		
+
 		case 3:
 			//Printing the RGB format
 			for (int i = 0; i < photo->height; i++) {
 				for (int j = 0; j < photo->width; j++)
-					fprintf(out, "%d %d %d ", photo->matrix[i][j].red, photo->matrix[i][j].green, photo->matrix[i][j].blue);
+					fprintf(out, "%d %d %d ", photo->matrix[i][j].red,
+							photo->matrix[i][j].green,
+							photo->matrix[i][j].blue);
 				fprintf(out, "\n");
 			}
 			break;
-		
+
 		default:
 			break;
 		}
@@ -659,7 +777,7 @@ void rotate_selection(photo_t *photo, int nrrot)
 				copy[i][j] = copy[j][i];
 				copy[j][i] = aux;
 			}
-		
+
 		//Swap columns
 		for (int i = 0; i < length; i++)
 			for (int j = 0; j < length / 2; j++) {
